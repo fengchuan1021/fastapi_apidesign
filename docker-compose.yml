@@ -1,0 +1,18 @@
+version: '3.7'
+
+services:
+  python:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+
+    expose:
+      - "8000"
+    volumes:
+      - .:/app
+    environment:
+      MODE: "${MODE:-DEV}"
+
+    restart: always

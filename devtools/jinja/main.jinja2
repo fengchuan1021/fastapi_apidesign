@@ -1,0 +1,63 @@
+from __future__ import annotations
+
+from fastapi import FastAPI
+from sqlalchemy.ext.asyncio import AsyncSession
+from common.dbsession import get_session
+from pydantic import BaseModel,validator,Field
+from RegistryManager import Registry
+from enum import Enum
+
+
+from BroadcastManager import broadcastManager
+from fastapi import BackgroundTasks
+from component.cache import cache
+from fastapi import APIRouter
+from fastapi import Depends
+from sqlalchemy.exc import IntegrityError
+from datetime import  timedelta
+import settings
+
+from common.globalFunctions import get_token
+from .__init__ import APIPREFIX
+{{imports}}
+
+router = APIRouter(
+    prefix=APIPREFIX,
+
+)
+
+
+
+
+
+{% for operation in operations %}
+# <editor-fold desc="{{operation.summary}} {{operation.type}}: {{operation.snake_case_path}}">
+@router.{{operation.type}}('{{operation.snake_case_path}}', response_model={{operation.response}}
+    {% if operation.additional_responses %}
+        , responses={
+            {% for status_code, models in operation.additional_responses.items() %}
+                '{{ status_code }}': {
+                {% for key, model in models.items() %}
+                    '{{ key }}': {{ model }}{% if not loop.last %},{% endif %}
+                {% endfor %}
+                }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        }
+    {% endif %})
+async def {{operation.summary}}({{operation.snake_case_arguments}},db: AsyncSession=Depends(get_session),token:settings.UserTokenData=Depends(get_token))->{{operation.return_type}}:
+    {%- if operation.summary %}
+    """
+    {{ operation.summary }}
+    """
+    {%- endif %}
+    #if need current userinfo.but most time use token.id or token.username,token.phone.to reduce one database request
+    await db.commit()
+    #user=await Registry.UserRegistry.findByPk(db,token.id)
+
+    pass
+# </editor-fold>
+
+
+
+
+{% endfor %}

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Redirect output to stderr.
+exec 1>&2
+echo "1111111"
+mypy app.py
