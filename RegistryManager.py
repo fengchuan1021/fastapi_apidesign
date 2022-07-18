@@ -7,6 +7,7 @@ import settings
 import importlib
 import Registries
 from typing import Any
+import sys
 class RegistryManager:
     def __getattr__(self,name:str)->Any:
         if os.path.exists(os.path.join(settings.BASE_DIR,'Registries',f'{name}.py')):
