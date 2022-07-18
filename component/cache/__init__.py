@@ -9,47 +9,57 @@
 # )
 #from cache.client import FastApiRedisCache
 import json
-
+import asyncio
 from pydantic import BaseModel
+from redis.asyncio import Redis
+import settings
 from component.cache.key_builder import default_key_builder
 from fastapi.encoders import jsonable_encoder
 import asyncio
 from functools import wraps
-from typing import Callable, Optional, Type,Dict,Tuple
+from typing import Callable, Optional, Type,Dict,Tuple,Any,TypeVar,Callable,overload,cast
 from inspect import signature, _empty
+F = TypeVar('F', bound=Callable[..., Any])
+_StrType = TypeVar("_StrType", bound=str | bytes)
+
 class CacheClass:
-    def __init__(self):
-        self._prefix = None
-        self._expire = None
-        self._init = False
-        self. _key_builder = None
-        self._enable = True
-        self._loop = None
-        self.redis=None
+    #self._loop: asyncio.AbstractEventLoop
+    def __init__(self)->None:
+        self._prefix:str = ''
+        self._expire:int = 0
+        self._init:bool = False
+        self. _key_builder:Callable[...,Any]
+        self._enable:bool = True
+        self._loop:asyncio.AbstractEventLoop
+        self.redis:Redis
     def init(
         self,
-        redis,
+        redis:Redis,
         prefix: str = "",
         expire: int = None,
         key_builder: Callable = default_key_builder,
         enable: bool = True,
-    ):
+    )->None:#type: ignore
         if self._init:
             return
         self._init = True
         self.redis = redis
         self._prefix = prefix
-        self._expire = expire
+        self._expire = expire if expire else settings.DEFAULT_REDIS_EXPIRED
         self._key_builder = key_builder
         self._enable = enable
         self._loop=asyncio.get_event_loop()
 
+
+
     def __call__(
             self,
-            expire: int = None,
-            key_builder: Callable = None,
-            namespace: Optional[str] = "",
-    ):
+            __func:F=None,
+            *,
+            expire: int = 0,
+            key_builder: Callable[...,Any] = None,
+            namespace: str = "",
+    )->Any:
         """
         cache all function
 
@@ -59,11 +69,11 @@ class CacheClass:
         :return:
         """
 
-        def wrapper(func):
+        def decorator(func:F)->F:
             funcsig=signature(func)
 
             @wraps(func)
-            async def inner(*args, **kwargs):
+            async def inner(*args:Any, **kwargs:Any)->Any:
                 nonlocal expire
                 nonlocal key_builder
                 expire = expire or self.get_expire()
@@ -81,47 +91,33 @@ class CacheClass:
                     # await func(inDataType)
                 else:
                     ret = func(*args, **kwargs)
-                if(funcsig._return_annotation is not _empty) and issubclass(funcsig._return_annotation,BaseModel):
-                    ret=jsonable_encoder(funcsig._return_annotation.parse_obj(ret))
+                #funcsig._return_annotation.__args__[0].parse_obj()
+                if(funcsig.return_annotation is not _empty) and issubclass(funcsig.return_annotation,BaseModel):
+                    ret=jsonable_encoder(funcsig.return_annotation.parse_obj(ret))
 
                 await self.set(key,ret, expire)
                 return ret
-                #
-                # if request.method != "GET":
-                #     return await func(request, *args, **kwargs)
-                # if_none_match = request.headers.get("if-none-match")
-                # if ret is not None:
-                #     if response:
-                #         response.headers["cache-Control"] = f"max-age={ttl}"
-                #         etag = f"W/{hash(ret)}"
-                #         if if_none_match == etag:
-                #             response.status_code = 304
-                #             return response
-                #         response.headers["ETag"] = etag
-                #     return coder.decode(ret)
-                #
-                # ret = await func(*args, **kwargs)
-                # await backend.set(key, coder.encode(ret), expire)
-                # return ret
+            return cast(F, inner)
 
-            return inner
-
-        return wrapper
+        if __func is not None:
+            return decorator(__func)
+        else:
+            return decorator
 
 
-    def get_prefix(self):
+
+    def get_prefix(self)->str:
         return self._prefix
 
-    def get_expire(self):
+    def get_expire(self)->int:
         return self._expire
 
-    def get_coder(self):
-        return self._coder
 
-    def get_key_builder(self):
+
+    def get_key_builder(self)->Callable[...,Any]:
         return self._key_builder
 
-    def get_enable(self):
+    def get_enable(self)->bool:
         return self._enable
     
     async def clear(self, namespace: str = None, key: str = None) -> int:
@@ -130,18 +126,20 @@ class CacheClass:
             return await self.redis.eval(lua, numkeys=0)
         elif key:
             return await self.redis.delete(key)
+        else:
+            return 0
 
     async def get_with_ttl(self, key: str) -> Tuple[int, str]:
         async with self.redis.pipeline(transaction=True) as pipe:
-            return await (pipe.ttl(key).get(key).execute())
+            return await (pipe.ttl(key).get(key).execute()) #type: ignore
 
 
-    async def get(self, key) -> str:
+    async def get(self, key:str) -> _StrType | None:
         return await self.redis.get(key)
 
 
 
-    async def set(self, key: str, value: str, expire: int = None):
+    async def set(self, key: str, value: str, expire: int = None)-> bool | None:
         return await self.redis.set(key, value, ex=expire)
 
 
