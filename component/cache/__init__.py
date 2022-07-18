@@ -52,14 +52,14 @@ class CacheClass:
     def __call__(self,__func: Optional[F]=None) -> F: ...
 
     @overload
-    def __call__(self,*, expire: Optional[int]=0,namespace:Optional[str]='') -> Callable[[F], F]: ...
+    def __call__(self,*, expire: Optional[int]=0,key_builder: Optional[Callable[...,str]]=None,namespace:Optional[str]='') -> Callable[[F], F]: ...
 
     def __call__(
             self,
             __func:Optional[F] = None,
             *,
             expire: Optional[int] = 0,
-
+            key_builder: Optional[Callable[...,str]]= None,
             namespace: Optional[str] = "",
     )-> F | Callable[[F], F]:
         """
@@ -77,9 +77,9 @@ class CacheClass:
             @wraps(func)
             async def inner(*args:Any, **kwargs:Any)->Any:
                 nonlocal expire
-                #nonlocal key_builder
+                nonlocal key_builder
                 expire = expire or self.get_expire()
-                key_builder = default_key_builder
+                key_builder = key_builder or default_key_builder
 
                 key = key_builder(
                     funcsig, namespace, args=args, kwargs=kwargs
