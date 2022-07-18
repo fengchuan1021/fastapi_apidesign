@@ -50,7 +50,11 @@ class CacheClass:
         self._enable = enable
         self._loop=asyncio.get_event_loop()
 
+    @overload
+    def __call__(self,__func: F) -> F: ...
 
+    @overload
+    def __call__(self,*, expire: int,key_builder: F=None,namespace:str='') -> Callable[[F], F]: ...
 
     def __call__(
             self,
