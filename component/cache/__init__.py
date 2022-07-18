@@ -24,11 +24,11 @@ _StrType = TypeVar("_StrType", bound=str | bytes)
 
 class CacheClass:
     #self._loop: asyncio.AbstractEventLoop
+
     def __init__(self)->None:
         self._prefix:str = ''
         self._expire:int = 0
         self._init:bool = False
-        self. _key_builder:Callable[...,Any]
         self._enable:bool = True
         self._loop:asyncio.AbstractEventLoop
         self.redis:Redis
@@ -37,7 +37,6 @@ class CacheClass:
         redis:Redis,
         prefix: str = "",
         expire: int = None,
-        key_builder: Callable = default_key_builder,
         enable: bool = True,
     )->None:#type: ignore
         if self._init:
@@ -46,24 +45,23 @@ class CacheClass:
         self.redis = redis
         self._prefix = prefix
         self._expire = expire if expire else settings.DEFAULT_REDIS_EXPIRED
-        self._key_builder = key_builder
         self._enable = enable
         self._loop=asyncio.get_event_loop()
 
     @overload
-    def __call__(self,__func: F) -> F: ...
+    def __call__(self,__func: Optional[F]=None) -> F: ...
 
     @overload
-    def __call__(self,*, expire: int,key_builder: F=None,namespace:str='') -> Callable[[F], F]: ...
+    def __call__(self,*, expire: Optional[int]=0,namespace:Optional[str]='') -> Callable[[F], F]: ...
 
     def __call__(
             self,
-            __func:F=None,
+            __func:Optional[F] = None,
             *,
-            expire: int = 0,
-            key_builder: Callable[...,Any] = None,
-            namespace: str = "",
-    )->Any:
+            expire: Optional[int] = 0,
+
+            namespace: Optional[str] = "",
+    )-> F | Callable[[F], F]:
         """
         cache all function
 
@@ -79,9 +77,9 @@ class CacheClass:
             @wraps(func)
             async def inner(*args:Any, **kwargs:Any)->Any:
                 nonlocal expire
-                nonlocal key_builder
+                #nonlocal key_builder
                 expire = expire or self.get_expire()
-                key_builder = key_builder or self.get_key_builder()
+                key_builder = default_key_builder
 
                 key = key_builder(
                     funcsig, namespace, args=args, kwargs=kwargs
@@ -118,8 +116,7 @@ class CacheClass:
 
 
 
-    def get_key_builder(self)->Callable[...,Any]:
-        return self._key_builder
+
 
     def get_enable(self)->bool:
         return self._enable
