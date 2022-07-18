@@ -1,6 +1,6 @@
 # generated timestamp: 2022-07-08T15:43:44+00:00
 
-from __future__ import annotations
+
 
 from datetime import timedelta
 from enum import Enum
@@ -59,7 +59,7 @@ async def register(
     body: RegisterInShema,
     db: AsyncSession = Depends(get_session),
     token: settings.UserTokenData = Depends(get_token),
-) -> RegisterOutShema:
+) -> RegisterOutShema | dict:
     """
     register
     """
@@ -68,13 +68,13 @@ async def register(
     try:
         print('r??')
         UserModel=await Registry.UserRegistry.create(db,body)
-        models.Role.create
+
         #await db.commit()
     except IntegrityError as e:
-        return {'status':Status1.usernameexists,'msg':e._message()}
+        return {'status':Status1.usernameexists,'msg':str(e)}
 
     return   {'status':Status1.success,'user':outUser.from_orm(UserModel)}
-    pass
+
 
 
 # </editor-fold>

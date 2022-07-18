@@ -10,7 +10,7 @@ from RegistryManager import Registry
 import importlib
 from typing import Any
 from fastapi import FastAPI,Request
-import redis.asyncio as redis # type: ignore
+import redis.asyncio as redis
 from component.cache import cache
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -83,7 +83,7 @@ async def validate_tokenandperformevent(request: Request, call_next:Any)->Respon
 @app.on_event("startup")
 async def startup()->None:
     pool = redis.ConnectionPool.from_url(url=settings.REDISURL)
-    r = redis.Redis(connection_pool=pool)
+    r:redis.Redis = redis.Redis(connection_pool=pool)
     cache.init(r, prefix="xt-cache",expire=3600)
 
 

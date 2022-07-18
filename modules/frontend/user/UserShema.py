@@ -31,7 +31,7 @@ class RegisterInShema(BaseModel):
     password: str
     phone: str
     email: str
-    def passwordcheck(cls, v,values):
+    def passwordcheck(cls, v,values): #type: ignore
         if 'repassword' in values and v != values['repassword']:
             raise ValueError('passwords do not match')
         elif 'repassword' in values and v == values['repassword']:

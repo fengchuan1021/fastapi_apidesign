@@ -13,9 +13,9 @@ elif MODE=='STAGING':
 else:
     load_dotenv(os.path.join(BASE_DIR, 'PROD.env'))
 
-REDISURL=os.getenv('REDISURL')
+REDISURL:str=os.getenv('REDISURL','')
 CELERY_RESULT_EXPIRED=3600
-
+DEFAULT_REDIS_EXPIRED=3600
 DB_USER=os.getenv('DB_USER')
 DB_PASS=os.getenv('DB_PASS')
 DB_HOST=os.getenv('DB_HOST')
