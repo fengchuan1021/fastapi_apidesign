@@ -12,4 +12,4 @@ def check_admintoken(token: settings.UserTokenData = Depends(get_token))->None:
         #out=jsonable_encoder(Common500OutShema(status=Common500Status.tokenerror,msg="not admin",data=""))
         raise TokenException("not admin")
 
-dependencies:List[Callable[...,Any]]=praentdependencies+[Depends(check_admintoken)]
+dependencies:List[Any]=praentdependencies+[Depends(check_admintoken)]
