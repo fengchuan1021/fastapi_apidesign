@@ -17,7 +17,7 @@ class User(Base):
     gender = Column(ENUM('man', 'woman'))
     is_deleted = Column(INTEGER(255), server_default=text("'0'"))
     user_role = Column(INTEGER(11),nullable=False,default=0,server_default=text("'0'"))
-
+    nickname=Column(VARCHAR(32))
     @property
     def is_admin(self)->int:
         if not self.user_role:

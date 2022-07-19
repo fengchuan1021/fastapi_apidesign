@@ -87,6 +87,12 @@ def generateall():
     for tablename in metadata.tables:
         schemadict=gettableshema(tablename,metadata.tables[tablename])
         addDataModel('DB'+tablename,schemadict)
-
-generateall()
-#addDataModel("product",{"type":"object","properties":{"userID":{"type":"string"}},"x-apifox-orders":["userID"],"required":["userID"]})
+def deleteall():
+    data=getDataModel()
+    for row in data['data']:
+        if row['name']=='DBschema':
+            for item in row['children']:
+                deleteDataModel(item['schema']['id'])
+if __name__ == "__main__":
+    deleteall()
+    generateall()

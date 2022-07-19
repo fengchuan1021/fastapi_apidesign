@@ -40,8 +40,13 @@ def needupdate() -> t.List[tuple]:
             for op in script.upgrade_ops_list
         )
     )
-    return True if arr else False
+    return arr
 from alembic import command
-if needupdate():
+if arr:=needupdate():
+    print(arr)
     command.revision(config=config,autogenerate=True)
     command.upgrade(config=config,revision='head')
+    if os.getenv("MODE",'')=='STAGING':
+        from devtools.hackapifox import main
+        main.deleteall()
+        main.generateall()

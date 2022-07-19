@@ -12,7 +12,7 @@ elif MODE=='STAGING':
     load_dotenv(os.path.join(BASE_DIR, 'STAGING.env'))
 else:
     load_dotenv(os.path.join(BASE_DIR, 'PROD.env'))
-
+NODEID=int(os.getenv("NODEID", 0))
 REDISURL:str=os.getenv('REDISURL','')
 CELERY_RESULT_EXPIRED=3600
 DEFAULT_REDIS_EXPIRED=3600
@@ -22,6 +22,7 @@ DB_HOST=os.getenv('DB_HOST')
 DB_PORT=os.getenv('DB_PORT')
 DATABASE=os.getenv('DATABASE')
 DBURL='mysql+aiomysql://{}:{}@{}:{}/{}?charset=utf8mb4'.format(DB_USER, DB_PASS, DB_HOST, DB_PORT, DATABASE)
+SYNC_DBURL=DBURL.replace('+aiomysql','+pymysql')
 print(f"{DBURL=}")
 SECRET_KEY = "11a60e557ae59d6a4674bb5aeddcbc963bed0a4d44694f62c3be578d4155471d"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30

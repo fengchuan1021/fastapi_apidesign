@@ -14,20 +14,19 @@ MAX_INCREMENT_VALUE=((1<<(NODE_SIZE+INDEX_SIZE))-1)
 import os,settings,random
 
 class SnowFlack():
-    def timestamp(self):
+    def timestamp(self)->int:
         return int(time.time()*1000)
-    def __init__(self):
-        self.nodeid = os.getenv("nodeid", None)
+    def __init__(self)->None:
+        self.nodeid = settings.NODEID
         if not self.nodeid:
             if settings.DEBUG:
                 self.nodeid =66
             else:
                 raise Exception("must define unique nodeid in environment")
-        else:
-            self.nodeid=int(self.nodeid)
+
         self.lasttime=self.timestamp()
         self.increment=0
-    def getId(self):
+    def getId(self)->int:
 
         while (timestamp:=self.timestamp())<self.lasttime: #ntpdate or other time async tools could change time.so wait time to be correct
             pass

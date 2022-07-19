@@ -1,9 +1,10 @@
 import settings
 import os
 import re
+from pathlib import Path
 from devtools import generateModel
 def before_appstart()->None:
-
+    #Path(settings.BASE_DIR).joinpath('alembic.ini')
     generateModel.generate_model()
 
     resigtryTpl=open(os.path.join(settings.BASE_DIR, 'devtools','template', 'RegistryManager.py.tpl'), 'r', encoding='utf8').read()
