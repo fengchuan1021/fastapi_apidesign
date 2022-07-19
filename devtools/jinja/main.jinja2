@@ -16,14 +16,15 @@ from fastapi import Depends
 from sqlalchemy.exc import IntegrityError
 from datetime import  timedelta
 import settings
-
+from typing import Dict
 from common.globalFunctions import get_token
 from .__init__ import APIPREFIX
+from .__init__ import dependencies
 {{imports}}
 
 router = APIRouter(
     prefix=APIPREFIX,
-
+    dependencies=dependencies
 )
 
 
@@ -44,14 +45,13 @@ router = APIRouter(
             {% endfor %}
         }
     {% endif %})
-async def {{operation.summary}}({{operation.snake_case_arguments}},db: AsyncSession=Depends(get_session),token:settings.UserTokenData=Depends(get_token))->{{operation.return_type}}:
+async def {{operation.summary}}({{operation.snake_case_arguments}},db: AsyncSession=Depends(get_session),token:settings.UserTokenData=Depends(get_token))->{{operation.return_type}} | Dict:
     {%- if operation.summary %}
     """
     {{ operation.summary }}
     """
     {%- endif %}
     #if need current userinfo.but most time use token.id or token.username,token.phone.to reduce one database request
-    await db.commit()
     #user=await Registry.UserRegistry.findByPk(db,token.id)
 
     pass

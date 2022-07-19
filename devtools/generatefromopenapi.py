@@ -184,20 +184,27 @@ def mymain(content:str | bytes)->None:
             controller=itemdata["operationId"]
             groups[(folder,controller)][item]=paths[item]
             break
+    def createdir(dirpath:Path)->None:
+        print('fuck',dirpath)
+        if not dirpath.exists():
+            if not dirpath.parent.exists():
+                createdir(dirpath.parent)
+            dirpath.mkdir(parents=False,exist_ok=True)
+
+            inipath: Path = dirpath.joinpath('__init__.py')
+            with inipath.open('wt', encoding='utf8') as inifile:
+                prefix = '/api' + str(dirpath).replace(str(Path(settings.BASE_DIR).joinpath('modules')),'')
+                prefix=prefix.replace('\\','/')
+                inifile.write(
+                    f"APIPREFIX='{prefix}'\nfrom .. import dependencies as praentdependencies\nfrom fastapi import Depends\nfrom typing import List,Callable,Any\ndependencies:List[Callable[...,Any]]=praentdependencies+[]")
+
+        else:
+            pass
     for folder,controllerName in groups:
         deepdir=Path(settings.BASE_DIR).joinpath('modules',folder)
         APIPREFIX=''
-        if not deepdir.exists():
-            deepdir.mkdir(parents=True, exist_ok=True)
-            inipath:Path=deepdir.joinpath('__init__.py')
-            with inipath.open('wt',encoding='utf8') as inifile:
-                prefix='/api/'+folder
-                APIPREFIX=prefix
-                inifile.write(f"APIPREFIX='{prefix}'")
+        createdir(deepdir)
 
-        else:
-            with deepdir.joinpath('__init__.py').open('rt',encoding='utf8') as f:
-                APIPREFIX=f.read()
 
         newdata=copy.deepcopy(data)
         newdata["paths"]=groups[(folder,controllerName)]
