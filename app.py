@@ -14,7 +14,7 @@ import redis.asyncio as redis
 from component.cache import cache
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
-from common.CommonError import Common500OutShema,Common500Status
+from common.CommonError import Common500OutShema,Common500Status,TokenException
 from sqlalchemy.exc import OperationalError
 from common.globalFunctions import getorgeneratetoken
 from datetime import timedelta
@@ -73,6 +73,9 @@ async def validate_tokenandperformevent(request: Request, call_next:Any)->Respon
             await request.state.db_client.close()
         except:
             pass
+    except TokenException as e:
+        jsonout = jsonable_encoder(Common500OutShema(status=Common500Status.tokenerror, msg=str(e)))
+        response=JSONResponse(jsonout,status_code=500)
     except fastapi.exceptions.ValidationError as e:
         jsonout = jsonable_encoder(Common500OutShema(status=Common500Status.validateerror,msg='',data=e.errors()))
         response=JSONResponse(jsonout,status_code=500)

@@ -18,5 +18,10 @@ class Common500OutShema(BaseModel):
     msg: Optional[str] = None
     data:Optional[Any]
 
+class TokenException(Exception):
+    def __init__(self,msg:str):
+        self.msg=msg
+    def __repr__(self) -> str:
 
+        return self.msg
 
