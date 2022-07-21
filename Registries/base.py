@@ -23,14 +23,17 @@ class CRUDBase(Generic[ModelType]):
         self.model = model
 
     async def findByPk(self,dbSession: AsyncSession,id: int) -> Optional[ModelType]:
-        model= await dbSession.get(self.model,id)
-        return model
+        results=await dbSession.execute(select(self.model).where(self.model.is_deleted==0,self.model.id==id))
+        #model= await dbSession.execute(select(self.model).filter(self.model.pk == id).filter(self.model.is_deleted==False).first())
+        return results.scalar_one_or_none()
         # stmt = select(self.model).options(selectinload(A.bs))
         # result = await dbSession.execute(stmt)
         # return result.scalars().first()
         # return dbSession.select(self.model).filter(self.model.id == id).first()
 
+    async def getList(self,dbSession: AsyncSession,pageNum:int=1,pageSize:int=20,filter:dict={})->List[ModelType]:
 
+        return []
 
     async def create(self,dbSession: AsyncSession,shema_in:BaseModel) -> ModelType:
 
