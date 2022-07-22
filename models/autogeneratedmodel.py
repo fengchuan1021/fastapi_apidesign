@@ -11,7 +11,11 @@ from sqlalchemy.dialects.mysql import DATETIME
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .User import User
-Base = declarative_base()
+class MyBase(object):
+    id = Column(BIGINT, primary_key=True,default=snowFlack.getId)
+    is_deleted=Column(INTEGER)
+Base = declarative_base(cls=MyBase)#constructor=defaults_included_constructor
+
 
 metadata = Base.metadata
 

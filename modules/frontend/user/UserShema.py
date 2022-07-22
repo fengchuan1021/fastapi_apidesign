@@ -52,3 +52,7 @@ class User(BaseModel):
 class RegisterOutShema(BaseModel):
     status: Status1
     user: User
+    class Config:
+        orm_mode=True
+
+
